@@ -75,6 +75,7 @@ class binance extends \ccxt\async\binance {
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
                     'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
+                    'ignoreBalanceUpdate' => false, // Ignore event "balanceUpdate"
                 ),
                 'wallet' => 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate' => 1200000, // 20 mins
@@ -1185,6 +1186,11 @@ class binance extends \ccxt\async\binance {
         $this->balance[$accountType]['info'] = $message;
         $event = $this->safe_string($message, 'e');
         if ($event === 'balanceUpdate') {
+            $options = $this->safe_value($this->options, 'watchBalance');
+            $ignoreBalanceUpdate = $this->safe_value($options, 'ignoreBalanceUpdate', false);
+            if ($ignoreBalanceUpdate) {
+                return;
+            }
             $currencyId = $this->safe_string($message, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
